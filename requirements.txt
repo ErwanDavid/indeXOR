@@ -1,0 +1,13 @@
+coverage==5.5
+deprecation==2.1.0
+docx==0.2.4
+ExifRead==2.3.2
+eyed3==0.9.6
+filetype==1.0.13
+lxml==4.8.0
+packaging==21.3
+pikepdf==5.1.2
+Pillow==9.1.0
+pyparsing==3.0.8
+python-docx==0.8.11
+toml==0.10.2
