@@ -5,6 +5,7 @@ import exifread
 import docx
 import pikepdf
 import eyed3
+from magika import Magika
 
 import sys, re
 import json
@@ -12,26 +13,29 @@ import pathlib, hashlib
 import multiprocessing as mp
 import sqlite3
 from datetime import datetime, timezone
+import time
 
-CreateDataBase = sqlite3.connect('MyDataBase.db')
-QueryCurs = CreateDataBase.cursor()
+m = Magika()
 
 def createTable(cursor_obj):
+    print("CREATE TABLE")
     cursor_obj.execute("DROP TABLE IF EXISTS FILE")
     table = """ CREATE TABLE FILE (
                 sha256  VARCHAR(255) NOT NULL,
                 path  VARCHAR(255) NOT NULL,
                 file  VARCHAR(255) NOT NULL,
                 extention CHAR(25) NOT NULL,
+                mimetype VARCHAR(25) NOT NULL,
+                typedesc VARCHAR(100) NOT NULL,
                 size int NOT NULL,
                 mtime real,
-                month CHAR(25) NOT NULL,
+                month VARCHAR(25) NOT NULL,
                 year int NOT NULL,
-                all_author CHAR(250),
-                img_camera CHAR(250),
-                img_focallengh CHAR(250),
-                mp3_title CHAR(250),
-                mp3_album CHAR(250),
+                all_author VARCHAR(250),
+                img_camera VARCHAR(250),
+                img_focallengh VARCHAR(250),
+                mp3_title VARCHAR(250),
+                mp3_album VARCHAR(250),
                 meta VARCHAR(50000)
             ); """
     cursor_obj.execute(table)
@@ -152,14 +156,14 @@ def isDoc(extention) :
     else :
         return False
 
-def AddEntry(cursor_obj,sha256, path, file, extention, size, mtime, \
+def AddEntry(cursor_obj,sha256, path, file, extention, typedesc, mimetype, size, mtime, \
                 month, year, all_author, img_camera, img_focallengh, mp3_title, mp3_album, meta):
-    QueryCurs.execute('''INSERT INTO FILE (sha256, path, file, extention, size, mtime, month, year, all_author, img_camera, img_focallengh, mp3_title, mp3_album, meta)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',    (sha256, path, file, extention, size, mtime, month, year, all_author, img_camera, img_focallengh, mp3_title, mp3_album, meta))
-    CreateDataBase.commit()
+    conn.execute('''INSERT INTO FILE (sha256, path, file, extention,typedesc, mimetype, size, mtime, month, year, all_author, img_camera, img_focallengh, mp3_title, mp3_album, meta)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',    (sha256, path, file, extention,typedesc, mimetype, size, mtime, month, year, all_author, img_camera, img_focallengh, mp3_title, mp3_album, meta))
+    conn.commit()
 
 def myWork(filePath):
-    #print("-- Work on", str(filePath))
+    print(getTimeStr(), "START", str(filePath))
     metaStr = ''
     appModel = ''
     focalLengh = ''
@@ -170,12 +174,16 @@ def myWork(filePath):
     DocObj = ''
     PdfObj = ''
     Mp3Obj = ''
+    res = m.identify_path(filePath)
+    type_desc = res.output.description
+    mime = res.output.mime_type
     mtime = filePath.stat().st_mtime
     folderdate= dateFromMtime(mtime)
     extention = filePath.suffix.lower().replace('.', '')
     filename = filePath.name
     foldername = str(filePath.parent)
     size = filePath.stat().st_size
+    print(getTimeStr(), "  META", str(filePath))
     try:
         if isImage(extention) :
             exif = GetfromExif(str(filePath))
@@ -210,15 +218,14 @@ def myWork(filePath):
     except :
         print("Error on metadata extraction")
 
-
+    print(getTimeStr(), "  SHA", str(filePath))
     sha256 = sha256sum(str(filePath))
     month = folderdate[:7]
     year = folderdate[:4]
     metaStr=str(exif) + str(DocObj) + str(PdfObj) + str(Mp3Obj)
-    if len(metaStr) > 5 :
-        print("  Meta", metaStr)
     #sha256, path, file, extention, size, mtime, month, year, all_author, img_camera, img_focallengh, mp3_title, mp3_album, meta
-    AddEntry(QueryCurs, sha256,foldername, filename, extention,size,mtime,\
+    print(getTimeStr(), "  INSERT", str(filePath))
+    AddEntry(QueryCurs, sha256,foldername, filename, extention, type_desc, mime,size,mtime,\
             month,year, author, appModel, focalLengh,\
             mp3_title, mp3_album, metaStr)    
 
@@ -233,10 +240,27 @@ def get_all_path(directory):
             Todo.append(path)
     return Todo
 
+def getTimeStr():
+    return time.strftime("%Y%m%d-%H%M%S")
+
+def needCreate():
+    listOfTables = QueryCurs.execute(''' SELECT count(name) FROM sqlite_master WHERE type='table' AND name='FILE' ''').fetchall()
+    print(len(listOfTables))
+    if len(listOfTables) > 0:
+        return False 
+    else:
+        return True
+
+timestr = getTimeStr() 
+conn = sqlite3.connect("LOCAL" + '_fileIndex.db')
+#conn = sqlite3.connect('file:cachedb?mode=memory&cache=shared')
+#QueryCurs = CreateDataBase.cursor()
+QueryCurs = conn.cursor()
+#if needCreate() :
 createTable(QueryCurs)
 
-#pool = mp.Pool(mp.cpu_count())
-pool = mp.Pool(1)
+pool = mp.Pool(mp.cpu_count())
+#pool = mp.Pool(1)
 global_Todo =  get_all_path(sys.argv[1])
-print("global todo", len(global_Todo))
+print("BIG LIST : ", len(global_Todo))
 results = pool.map(myWork, [row for row in global_Todo], 2)
