@@ -7,15 +7,25 @@ import pikepdf
 import eyed3
 from magika import Magika
 
-import sys, re
+import re
 import json
 import pathlib, hashlib
 import multiprocessing as mp
 import sqlite3
 from datetime import datetime, timezone
 import time
+import argparse
+
+
+parser=argparse.ArgumentParser(description="indeXOR: a tool to index you FS",
+                               epilog='Will create a DB at indicated file destination')
+parser.add_argument("path", help="path to be scanned eg /home/truc/")
+parser.add_argument("DBFilepath", help="Database file (sqlite) eg /data/mydb.db")
+args=parser.parse_args()
+
 
 m = Magika()
+
 
 def createTable(cursor_obj):
     print("CREATE TABLE")
@@ -251,16 +261,13 @@ def needCreate():
     else:
         return True
 
-timestr = getTimeStr() 
-conn = sqlite3.connect("LOCAL" + '_fileIndex.db')
-#conn = sqlite3.connect('file:cachedb?mode=memory&cache=shared')
-#QueryCurs = CreateDataBase.cursor()
+conn = sqlite3.connect(args.DBFilepath)
 QueryCurs = conn.cursor()
 #if needCreate() :
 createTable(QueryCurs)
 
 pool = mp.Pool(mp.cpu_count())
 #pool = mp.Pool(1)
-global_Todo =  get_all_path(sys.argv[1])
+global_Todo =  get_all_path(args.path)
 print("BIG LIST : ", len(global_Todo))
 results = pool.map(myWork, [row for row in global_Todo], 2)
