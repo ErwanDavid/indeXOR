@@ -1,4 +1,9 @@
 venv/
 dist/
+test/
+jupyter/
 .venv/
 *log
+*.csv
+*.db
+jupyter/exploreDB_jb.ipynb

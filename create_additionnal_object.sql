@@ -6,6 +6,12 @@ from FILE f
 group by f.typedesc
 order by 3 desc ;
 
+create view FILE_type_ext as
+select f.typedesc ,f.extention, count(1), sum(f.size)
+from FILE f 
+group by f.typedesc, f.extention
+order by 4 desc ;
+
 
 DROP view IF EXISTS FILE_author ;
 
