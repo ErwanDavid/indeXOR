@@ -6,3 +6,4 @@ jupyter/
 *log
 *.csv
 *.db
+*.json
