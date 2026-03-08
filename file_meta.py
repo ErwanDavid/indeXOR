@@ -12,6 +12,9 @@ import logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 extImage = ['jpg','jpeg','png', 'gif']
+extDoc = ['docx', 'doc']
+extPdf = ['pdf', 'ps']
+extMp3 = ['mp3', 'wav']
 
 def sha256sum(filename):
     try:
@@ -21,7 +24,7 @@ def sha256sum(filename):
         with open(filename, 'rb', buffering=0) as f:
             for n in iter(lambda : f.readinto(mv), 0):
                 h.update(mv[:n])
-        logging.debug(f"Calculated SHA256 for {filename}")
+        logging.debug(f"    calculated SHA256 for {filename}")
         return h.hexdigest()
     except Exception as e:
         logging.error(f"Failed to calculate SHA256 for {filename}: {e}")
@@ -43,6 +46,7 @@ def getMetaDatafromDoc(doc):
     metadata["subject"] = prop.subject
     metadata["title"] = prop.title
     metadata["version"] = prop.version
+    logging.debug(f"    extracted DOCX metadata: {metadata}")
     return metadata
 
 def GetfromMp3(fullfile):
@@ -52,7 +56,8 @@ def GetfromMp3(fullfile):
         mp3info['artist'] = audio.tag.artist
         mp3info['album']  = audio.tag.album
         mp3info['title']  = audio.tag.title
-        logging.debug(f"Extracted MP3 metadata from {fullfile}")
+        #mp3info['txt']  = audio.tag.USLT
+        logging.debug(f"    extracted MP3 metadata {mp3info}")
         return mp3info
     except Exception as e:
         logging.error(f"Failed to extract MP3 metadata from {fullfile}: {e}")
@@ -64,8 +69,9 @@ def GetfromPdf(fullfile):
         docinfo = pdf.docinfo
         objReturn = {}
         for key, value in docinfo.items():
+            key = key.replace('/','').lower()
             objReturn[key] = str(value)
-        logging.debug(f"Extracted PDF metadata from {fullfile} {objReturn}")
+        logging.debug(f"    extracted PDF metadata from {fullfile} {objReturn}")
         return objReturn
     except Exception as e:
         logging.error(f"Failed to extract PDF metadata from {fullfile}: {e}")
@@ -75,7 +81,7 @@ def GetfromDoc(fullfile):
     try:
         doc = docx.Document(fullfile) 
         metadata_dict = getMetaDatafromDoc(doc)
-        logging.debug(f"Extracted DOCX metadata from {fullfile}")
+        logging.debug(f"    extracted DOCX metadata  {metadata_dict}")
         return metadata_dict
     except Exception as e:
         logging.error(f"Failed to extract DOCX metadata from {fullfile}: {e}")
@@ -96,7 +102,7 @@ def GetfromExif(fullfile):
             if tag != 'JPEGThumbnail' : 
                 tag_key = tag.replace(' ','_')
                 return_exif[tag_key] = str(tags[tag])[:100]  
-        logging.debug(f"Extracted EXIF data from {fullfile}")
+        logging.debug(f"    extracted EXIF data  {return_exif}")
         return return_exif
     except :
         logging.error(f"Failed to process EXIF for file: {fullfile}")
@@ -106,7 +112,7 @@ def dateFromExif(exifObj):
     dayfolder = ''
     for tag in exifObj:
         if 'DateTimeOriginal' in tag:
-            logging.debug(f"Found DateTimeOriginal in EXIF: {tag} - {exifObj[tag]}")
+            logging.debug(f"   found DateTimeOriginal in EXIF: {tag} - {exifObj[tag]}")
             datestr = str(exifObj[tag])
             if datestr.find("/") > 0:
                 dayfolder = datestr.replace('/','_').replace(' ', '-')
@@ -116,7 +122,7 @@ def dateFromExif(exifObj):
 
 def dateFromMtime(mtimeFile):
     dateTimeFile = datetime.fromtimestamp(mtimeFile, tz=timezone.utc)
-    logging.debug(f"Found date from mtime: {dateTimeFile}")
+    logging.debug(f"    found date from MTIME: {dateTimeFile}")
     return dateTimeFile.strftime("%Y_%m")
 
 def isImage(extention) :
@@ -126,21 +132,18 @@ def isImage(extention) :
         return False
 
 def isMp3(extention) :
-    extMp3 = ['mp3', 'wav']
     if  extention  in extMp3:
         return True
     else :
         return False
 
 def isPdf(extention) :
-    extPdf = ['pdf']
     if  extention  in extPdf:
         return True
     else :
         return False
 
 def isDoc(extention) :
-    extDoc = ['docx']
     if  extention  in extDoc:
         return True
     else :
@@ -156,10 +159,7 @@ class FileMeta:
         self.mtime = os.path.getmtime(fullfile)
         self.sha256sum = sha256sum(fullfile)
         if isImage(self.extention) :
-            self.dayfolder = dateFromExif(self.exif)
             self.exif = GetfromExif(fullfile)
-        else :
-            self.dayfolder = dateFromMtime(self.mtime)
         if isMp3(self.extention) :
             self.mp3info = GetfromMp3(fullfile)
         if isPdf(self.extention) :

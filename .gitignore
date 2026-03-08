@@ -3,7 +3,9 @@ dist/
 test/
 jupyter/
 .venv/
+__pycache__/
 *log
 *.csv
 *.db
 *.json
+tika-app-3.2.3.jar
