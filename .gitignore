@@ -1,6 +1,7 @@
 venv/
 dist/
 test/
+old/
 jupyter/
 .venv/
 __pycache__/

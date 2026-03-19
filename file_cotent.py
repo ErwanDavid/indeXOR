@@ -4,12 +4,13 @@ import os
 import logging
 import subprocess
 import file_meta  as fm
+import spacy
+# python -m spacy download en_core_web_sm
+
+# Load the pre-trained model
+nlp = spacy.load('en_core_web_sm')
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-
-
-def get_file_content_img(fullfile):
-    return None
 
 
 def get_file_content_pdf(fullfile):
@@ -24,6 +25,7 @@ def get_file_content_pdf(fullfile):
         "-t",
         fullfile,
     ]
+    logging.debug(f"Running command to extract text content from PDF: {' '.join(cmd)}")
     try:
         proc = subprocess.run(
             cmd,
@@ -43,18 +45,29 @@ def get_file_content_pdf(fullfile):
         logging.error(f"Unexpected error extracting text content from PDF {fullfile}: {e}")
     return None
 
+def extract_entities(bio_text):
+    doc = nlp(bio_text)
+    ret_dic_clean={}
+    for ent in doc.ents:
+        if ent.label_ in ret_dic_clean.keys():
+            if ent.text not in ret_dic_clean[ent.label_]:
+                ret_dic_clean[ent.label_].append(ent.text)
+        else:
+            ret_dic_clean[ent.label_] = []
+            ret_dic_clean[ent.label_].append(ent.text)
+    return ret_dic_clean
+
 class FileContent:
     def __init__(self, fullfile):
         self.fullfile = fullfile
         self.extention = fullfile.split('.')[-1].lower()
-        self.content = None
-        logging.info(f"Extracting content from file: {fullfile} with extension: {self.extention}")
-        if fm.isImage(self.extention) :
-            self.content = get_file_content_pdf(fullfile)
-        if fm.isPdf(self.extention) :
-            self.content = get_file_content_pdf(fullfile)
-        if fm.isDoc(self.extention) :
-            self.content = get_file_content_pdf(fullfile)
+        self.content = ''
 
     def getContent(self):
+        logging.info(f"Extracting content from file: {self.fullfile} with extension: {self.extention}")
+        if fm.isImage(self.extention)  or fm.isPdf(self.extention) or fm.isDoc(self.extention):
+            self.content = get_file_content_pdf(self.fullfile).replace('\n', ' ').replace('\r', ' ')
         return self.content
+    
+    def extract_entities(self):
+        return extract_entities(self.content)

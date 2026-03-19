@@ -152,7 +152,7 @@ def isDoc(extention) :
 class FileMeta:
     def __init__(self, fullfile):
         logging.info(f"Processing file: {fullfile}")
-        self.fullfile = fullfile
+        #self.fullfile = fullfile
         self.extention = fullfile.split('.')[-1].lower()
         self.filename = fullfile.split('/')[-1]
         self.filesize = os.path.getsize(fullfile)

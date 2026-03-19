@@ -2,6 +2,7 @@
 indeXOR: a tool to index you FS into a sqlite DB
 Will create a DB at indicated file destination
 
+pip install python_docx pikepdf magika eyed3 ExifRead
 
 ## Feature
 
