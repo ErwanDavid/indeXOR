@@ -21,6 +21,17 @@ output_url = args.outputUrl
 logging.info(f"Processing input: {input_url} of type {input_type}")
 logging.info(f" and storing results in {output_url} of type {output_type}")
 
+# INPUT TYPE HANDLING
+if input_type.lower() == 'filesystem':
+    logging.info(f"Input type is FileSystem, processing accordingly")
+    import filesystem_input as input_handler
+elif input_type.lower() == 'json':
+    logging.info(f"Input type is JSON, processing accordingly")
+    #import json_input as input_handler
+else:
+    logging.error(f"Unsupported input type: {input_type}")
+
+
 # OUTPUT TYPE HANDLING
 if output_type.lower() == 'json':
     logging.info(f"Output type is JSON, processing accordingly")
@@ -34,15 +45,6 @@ elif output_type.lower() == 'mongodb':
 else:
     logging.error(f"Unsupported output type: {output_type}")
 
-# INPUT TYPE HANDLING
-if input_type.lower() == 'filesystem':
-    logging.info(f"Input type is FileSystem, processing accordingly")
-    import filesystem_input as input_handler
-elif input_type.lower() == 'json':
-    logging.info(f"Input type is JSON, processing accordingly")
-    #import json_input as input_handler
-else:
-    logging.error(f"Unsupported input type: {input_type}")
 
 allowed_ext = ['jpg','jpeg','png','bmp', 'gif', 'pdf', 'docx', 'doc', 'mp3', 'txt', 'wav', 'xlsx', 'pptx', 'xls', 'ppt', 'mp4', 'avi', 'mkv', 'mov', 'flv', 'wmv', 'webm']
 
