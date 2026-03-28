@@ -7,14 +7,17 @@ import eyed3
 import pikepdf
 import docx
 import exifread
+from magika import Magika
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+m = Magika()
 
 extImage = ['jpg','jpeg','png', 'gif']
 extDoc = ['docx', 'doc']
 extPdf = ['pdf', 'ps']
 extMp3 = ['mp3', 'wav']
+extTxt = ['txt', 'log', 'csv', 'json', 'md']
 
 def sha256sum(filename):
     try:
@@ -142,6 +145,12 @@ def isPdf(extention) :
         return True
     else :
         return False
+    
+def isTxt(extention) :
+    if  extention  in extTxt:
+        return True
+    else :
+        return False
 
 def isDoc(extention) :
     if  extention  in extDoc:
@@ -157,6 +166,8 @@ class FileMeta:
         self.filename = fullfile.split('/')[-1]
         self.filesize = os.path.getsize(fullfile)
         self.mtime = os.path.getmtime(fullfile)
+        res = m.identify_path(fullfile)
+        self.mimetype = res.output.description
         self.sha256sum = sha256sum(fullfile)
         if isImage(self.extention) :
             self.exif = GetfromExif(fullfile)

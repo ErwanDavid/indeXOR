@@ -43,7 +43,7 @@ def get_file_content_pdf(fullfile):
         )
     except Exception as e:
         logging.error(f"Unexpected error extracting text content from PDF {fullfile}: {e}")
-    return None
+    return ''
 
 def extract_entities(bio_text):
     doc = nlp(bio_text)
@@ -67,6 +67,8 @@ class FileContent:
         logging.info(f"Extracting content from file: {self.fullfile} with extension: {self.extention}")
         if fm.isImage(self.extention)  or fm.isPdf(self.extention) or fm.isDoc(self.extention):
             self.content = get_file_content_pdf(self.fullfile).replace('\n', ' ').replace('\r', ' ')
+            if self.content:
+                self.content.replace('\n', ' ').replace('\r', ' ')
         return self.content
     
     def extract_entities(self):

@@ -1,8 +1,14 @@
 # indeXOR
-indeXOR: a tool to index you FS into a sqlite DB
-Will create a DB at indicated file destination
+indeXOR: a tool to index you FS into either json, mongodb, orELK
 
-pip install python_docx pikepdf magika eyed3 ExifRead
+## Requirements
+
+pip install python_docx pikepdf magika eyed3 ExifRead spacy
+python -m spacy download en_core_web_sm
+
+JAVA jre 17+ for tika
+eg: 
+pacman -Sy jre-openjdk
 
 ## Feature
 
