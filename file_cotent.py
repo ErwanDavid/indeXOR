@@ -12,6 +12,15 @@ nlp = spacy.load('en_core_web_sm')
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def get_file_content_txt(fullfile):
+    try:
+        with open(fullfile, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+            logging.debug(f"  ***  extracted text content length: {len(content)} characters")
+            return content
+    except Exception as e:
+        logging.error(f"Failed to extract text content from TXT file {fullfile}: {e}")
+        return ''       
 
 def get_file_content_pdf(fullfile):
     # run java external tool to extract text content from pdf
@@ -66,9 +75,11 @@ class FileContent:
     def getContent(self):
         logging.info(f"Extracting content from file: {self.fullfile} with extension: {self.extention}")
         if fm.isImage(self.extention)  or fm.isPdf(self.extention) or fm.isDoc(self.extention):
-            self.content = get_file_content_pdf(self.fullfile).replace('\n', ' ').replace('\r', ' ')
+            self.content = get_file_content_pdf(self.fullfile)
+        if fm.isTxt(self.extention) :
+            self.content = get_file_content_txt(self.fullfile)
             if self.content:
-                self.content.replace('\n', ' ').replace('\r', ' ')
+                self.content = self.content.replace('\n', ' ').replace('\r', ' ')
         return self.content
     
     def extract_entities(self):
