@@ -63,7 +63,8 @@ for file in fileList:
             content = fc.FileContent(file)
             filejson['content'] = content.getContent()
             if len(filejson['content']) > 4:
-                filejson['entities'] = fc.extract_entities(filejson['content'])
+                logging.info(f"Extracting entities from content of file: {file} on {len(filejson['content'])} characters")
+                filejson['entities'] = fc.extract_entities(filejson['content'][0:10000])
             outputHandler.add(filejson)
         else:
             logging.info(f"File already processed, skipping: {file}")

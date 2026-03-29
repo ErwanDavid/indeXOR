@@ -79,7 +79,8 @@ class FileContent:
         if fm.isTxt(self.extention) :
             self.content = get_file_content_txt(self.fullfile)
             if self.content:
-                self.content = self.content.replace('\n', ' ').replace('\r', ' ')
+                self.content = self.content.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
+        logging.debug(f"Extracted content length: {len(self.content)} characters")
         return self.content
     
     def extract_entities(self):

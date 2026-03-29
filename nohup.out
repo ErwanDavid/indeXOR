@@ -1,0 +1,13 @@
+2026-03-29 10:18:50,702 - INFO - Processing input: /net/epstein_files/ of type FileSystem
+2026-03-29 10:18:50,702 - INFO -  and storing results in /home/erwan/epstein2.json of type json
+2026-03-29 10:18:50,702 - INFO - Input type is FileSystem, processing accordingly
+2026-03-29 10:18:50,702 - INFO - Output type is JSON, processing accordingly
+2026-03-29 10:18:50,703 - INFO - Scanning folder /net/epstein_files/ for files with extensions ['jpg', 'jpeg', 'png', 'bmp', 'gif', 'pdf', 'docx', 'doc', 'mp3', 'txt', 'wav', 'xlsx', 'pptx', 'xls', 'ppt', 'mp4', 'avi', 'mkv', 'mov', 'flv', 'wmv', 'webm']
+2026-03-29 10:19:03,387 - INFO - Found 25837 files in folder /net/epstein_files/ with allowed extensions
+2026-03-29 10:19:03,390 - INFO - ________ Processing file: /net/epstein_files/B. Flight Log_Released in U.S. v. Maxwell_0_0_0_0.pdf
+2026-03-29 10:19:03,391 - INFO - Processing file: /net/epstein_files/B. Flight Log_Released in U.S. v. Maxwell_0_0_0_0.pdf
+2026-03-29 10:19:03,773 - DEBUG -     calculated SHA256 for /net/epstein_files/B. Flight Log_Released in U.S. v. Maxwell_0_0_0_0.pdf
+2026-03-29 10:19:03,891 - DEBUG -     extracted PDF metadata from /net/epstein_files/B. Flight Log_Released in U.S. v. Maxwell_0_0_0_0.pdf {'author': 'Department of Justice', 'creationdate': "D:20250227184759+05'00'", 'keywords': 'Flight Log_Released in U.S. v. Maxwell; Epstein Files Phase 1 ', 'moddate': "D:20250227190057-05'00'", 'producer': 'ABBYY FineReader 9.0 Professional Edition', 'subject': 'B. Flight Log_Released in U.S. v. Maxwell', 'title': 'B. Flight Log_Released in U.S. v. Maxwell'}
+2026-03-29 10:19:03,898 - INFO - Finished processing file: /net/epstein_files/B. Flight Log_Released in U.S. v. Maxwell_0_0_0_0.pdf PDF document
+2026-03-29 10:19:03,901 - INFO - Extracting content from file: /net/epstein_files/B. Flight Log_Released in U.S. v. Maxwell_0_0_0_0.pdf with extension: pdf
+2026-03-29 10:19:03,901 - DEBUG - Running command to extract text content from PDF: java -cp tika-app-3.2.3.jar:jai-imageio-core-1.4.0.jar org.apache.tika.cli.TikaCLI -t /net/epstein_files/B. Flight Log_Released in U.S. v. Maxwell_0_0_0_0.pdf

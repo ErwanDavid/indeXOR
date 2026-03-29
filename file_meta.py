@@ -177,7 +177,7 @@ class FileMeta:
             self.pdfinfo = GetfromPdf(fullfile)
         if isDoc(self.extention) :
             self.docinfo = GetfromDoc(fullfile)
-        logging.info(f"Finished processing file: {fullfile}")
+        logging.info(f"Finished processing file: {fullfile} {self.mimetype}")
 
     def getJsonRepresentation(self):
         return self.__dict__
