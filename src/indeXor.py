@@ -46,18 +46,23 @@ else:
     logging.error(f"Unsupported output type: {output_type}")
 
 
-allowed_ext = ['jpg','jpeg','png','bmp', 'gif', 'pdf', 'docx', 'doc', 'mp3', 'txt', 'wav', 'xlsx', 'pptx', 'xls', 'ppt', 'mp4', 'avi', 'mkv', 'mov', 'flv', 'wmv', 'webm']
+allowed_ext = ['jpg','jpeg','png','bmp', 'gif', 'pdf', 'docx', 'doc', 'mp3', 'txt', 'wav', 'xlsx', 'pptx', 'xls', 'ppt', 'mp4', 'avi', 'mkv', 'mov', 'flv', 'wmv', 'webm', 'htm', 'html']
 
 outputHandler = persist.Persist(output_url)
+outputHandler.load_cache()
 
 
 fileList = input_handler.getFileList(input_url, allowed_ext)
+doc_nbr = len(fileList)
+cur_doc = 0
+logging.info(f"Found {doc_nbr} files to process in {input_url}")
 for file in fileList:
-        logging.info(f"________ Processing file: {file}")
+        logging.info(f"________ Processing file: {file} ({cur_doc+1}/{doc_nbr})")
+        cur_doc += 1
         filejson = {}
         filejson['path'] = file
-        filejson['scan_date'] = datetime.today().strftime("%Y-%m-%d")
         if not outputHandler.exists(file):
+            filejson['scan_date'] = datetime.today().strftime("%Y-%m-%d")
             meta = fm.FileMeta(file)
             filejson['meta'] = meta.getJsonRepresentation()
             content = fc.FileContent(file)
@@ -65,6 +70,7 @@ for file in fileList:
             if len(filejson['content']) > 4:
                 logging.info(f"Extracting entities from content of file: {file} on {len(filejson['content'])} characters")
                 filejson['entities'] = fc.extract_entities(filejson['content'][0:10000])
+                filejson['kw'] = fc.extract_keywords(filejson['content'][0:10000])
             outputHandler.add(filejson)
         else:
-            logging.info(f"File already processed, skipping: {file}")
+            logging.info(f"File already processed, skipping: {file} ({cur_doc}/{doc_nbr})")

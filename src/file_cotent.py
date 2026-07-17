@@ -4,6 +4,7 @@ import os
 import logging
 import subprocess
 import file_meta  as fm
+from bs4 import BeautifulSoup
 import spacy
 # python -m spacy download en_core_web_sm
 
@@ -20,7 +21,21 @@ def get_file_content_txt(fullfile):
             return content
     except Exception as e:
         logging.error(f"Failed to extract text content from TXT file {fullfile}: {e}")
-        return ''       
+        return '' 
+
+def get_file_content_html(fullfile):
+    try:
+        with open(fullfile, 'r', encoding='utf-8', errors='ignore') as f:
+            html_content = f.read()
+            # Use BeautifulSoup to parse HTML and extract text
+            
+            soup = BeautifulSoup(html_content, 'html.parser')
+            text_content = soup.get_text(separator=' ', strip=True)
+            logging.debug(f"  ***  extracted HTML content length: {len(text_content)} characters")
+            return text_content
+    except Exception as e:
+        logging.error(f"Failed to extract text content from HTML file {fullfile}: {e}")
+        return ''
 
 def get_file_content_pdf(fullfile):
     # run java external tool to extract text content from pdf
@@ -54,16 +69,37 @@ def get_file_content_pdf(fullfile):
         logging.error(f"Unexpected error extracting text content from PDF {fullfile}: {e}")
     return ''
 
+#extract all distinct non stop  word 
+def extract_keywords(text):
+    # Process the text with spaCy
+    doc = nlp(text)
+    # Create a frequency dictionary for non-stop words
+    word_freq = {}
+    for token in doc:
+        if not token.is_stop and not token.is_punct and token.is_alpha:
+            word = token.lemma_.lower()  # Use lemma to group similar words
+            word_freq[word] = word_freq.get(word, 0) + 1
+    # Sort the words by frequency and get the top N keywords
+    sorted_keywords = sorted(word_freq.items(), key=lambda item: item[1], reverse=True)
+    top_keywords = [word for word, freq in sorted_keywords]
+    return top_keywords
+
 def extract_entities(bio_text):
     doc = nlp(bio_text)
-    ret_dic_clean={}
-    for ent in doc.ents:
-        if ent.label_ in ret_dic_clean.keys():
-            if ent.text not in ret_dic_clean[ent.label_]:
-                ret_dic_clean[ent.label_].append(ent.text)
-        else:
-            ret_dic_clean[ent.label_] = []
-            ret_dic_clean[ent.label_].append(ent.text)
+    ret_dic_clean = {}
+    entity_lookup = {}
+
+    # Build entities with all sentence numbers (1-based) where they are found.
+    for sent_num, sent in enumerate(doc.sents, start=1):
+        for ent in sent.ents:
+            key = (ent.label_, ent.text)
+            if key in entity_lookup:
+                if sent_num not in entity_lookup[key]["sent"]:
+                    entity_lookup[key]["sent"].append(sent_num)
+            else:
+                entry = {"entity": ent.text, "sent": [sent_num]}
+                ret_dic_clean.setdefault(ent.label_, []).append(entry)
+                entity_lookup[key] = entry
     return ret_dic_clean
 
 class FileContent:
@@ -78,7 +114,9 @@ class FileContent:
             self.content = get_file_content_pdf(self.fullfile)
         if fm.isTxt(self.extention) :
             self.content = get_file_content_txt(self.fullfile)
-            if self.content:
+        if fm.isHtml(self.extention) :
+            self.content = get_file_content_html(self.fullfile)
+        if self.content:
                 self.content = self.content.replace('\n', ' ').replace('\r', ' ').replace('\t', ' ')
         logging.debug(f"Extracted content length: {len(self.content)} characters")
         return self.content

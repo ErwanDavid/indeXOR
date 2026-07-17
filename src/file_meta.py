@@ -18,6 +18,7 @@ extDoc = ['docx', 'doc']
 extPdf = ['pdf', 'ps']
 extMp3 = ['mp3', 'wav']
 extTxt = ['txt', 'log', 'csv', 'json', 'md']
+extHtml = ['htm', 'html']
 
 def sha256sum(filename):
     try:
@@ -148,6 +149,12 @@ def isPdf(extention) :
     
 def isTxt(extention) :
     if  extention  in extTxt:
+        return True
+    else :
+        return False
+
+def isHtml(extention) :
+    if  extention  in extHtml:
         return True
     else :
         return False
